@@ -1,0 +1,1 @@
+﻿Invoke-Command  hostname -ScriptBlock {Disable-WindowsOptionalFeature -FeatureName Internet-Explorer-Optional-amd64 –Online} -Credential get-credential
