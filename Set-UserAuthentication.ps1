@@ -74,7 +74,7 @@ try {
 
             # Set the StrongAuthenticationMethods for the user
             Set-MsolUser -UserPrincipalName $UserPrincipalName -StrongAuthenticationMethods $SAMethods `
-                -MobilePhone $MobileNumber -AlternateMobilePhones $AlternateMobiles
+                -StrongAuthenticationUserDetails @{"PhoneNumber"=$MobileNumber} -AlternateMobilePhones $AlternateMobiles
 
             # Update progress
             $progress++
