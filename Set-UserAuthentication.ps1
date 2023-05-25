@@ -12,13 +12,13 @@ param (
 
 # Check execution policy and set if needed
 $executionPolicy = Get-ExecutionPolicy -Scope CurrentUser
-if ($executionPolicy -ne "RemoteSigned" -and $executionPolicy -ne "Unrestricted") {
+if ($executionPolicy -notin ("RemoteSigned", "Unrestricted")) {
     Write-Host "Setting execution policy to RemoteSigned..."
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 }
 
 # Check if module is installed and imported
-if ($null -eq (Get-Module -Name $Module)[0]) {
+if (!(Get-Module -Name $Module)) {
     # Install module if it's not already installed
     Write-Host "Installing module $Module..."
     Install-Module -Name $Module -Force -AllowClobber
@@ -72,9 +72,14 @@ try {
 
             $SAMethods = @($SAM1, $SAM2, $SAM3, $SAM4)
 
-            # Set the StrongAuthenticationMethods for the user
-            Set-MsolUser -UserPrincipalName $UserPrincipalName -StrongAuthenticationMethods $SAMethods `
-                -StrongAuthenticationUserDetails @{"PhoneNumber"=$MobileNumber} -AlternateMobilePhones $AlternateMobiles
+            $phoneNumber = Get-MsolUser -UserPrincipalName $userPrincipalName | Select-Object -ExpandProperty StrongAuthenticationUserDetails | Select-Object -ExpandProperty phoneNumber
+
+            # Only run the operation if the $phoneNumber variable is empty or has whitespace
+            if ([string]::IsNullOrWhiteSpace($phoneNumber)) {
+                # Set the StrongAuthenticationMethods for the user
+                Set-MsolUser -UserPrincipalName $UserPrincipalName -StrongAuthenticationMethods $SAMethods `
+                    -StrongAuthenticationUserDetails @{"PhoneNumber" = $MobileNumber} -AlternateMobilePhones $AlternateMobiles
+            } 
 
             # Update progress
             $progress++
